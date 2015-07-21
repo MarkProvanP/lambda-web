@@ -22,12 +22,16 @@ type THTTPFilename = String
 
 type THTTPVersion = DHTTPVersion
 data DHTTPVersion = OneOh | OneOne | TwoOh
-  deriving (Show)
+instance Show DHTTPVersion where
+  show OneOh = "HTTP/1.0"
+  show OneOne = "HTTP/1.1"
+  show TwoOh = "HTTP/2.0"
 parseHTTPVersion :: String -> THTTPVersion
 parseHTTPVersion string = case string of
   "HTTP/1.0" -> OneOh
   "HTTP/1.1" -> OneOne
   "HTTP/2.0" -> TwoOh
+
 
 type TAccept = String
 initialAccept = ""
@@ -205,6 +209,21 @@ type TXCsrfToken = String
 initialXCsrfToken = ""
 changeRXCsrfToken request value = request { rXCsrfToken = value }
 
+type THTTPStatus = DHTTPStatus
+data DHTTPStatus = CONTINUE_100
+                  | OK_200
+                  | BAD_RQST_400
+                  | UNAUTH_401
+                  | FORBIDDEN_403
+                  | NOTFOUND_404
+instance Show DHTTPStatus where
+  show CONTINUE_100 = "100 Continue"
+  show OK_200 = "200 OK"
+  show BAD_RQST_400 = "400 Bad Request"
+  show UNAUTH_401 = "401 Unauthorized"
+  show FORBIDDEN_403 = "403 Forbidden"
+  show NOTFOUND_404 = "404 Not Found"
+
 data Request = Request
   { rHTTPMethod :: THTTPMethod
   , rHTTPFilename :: THTTPFilename
@@ -311,7 +330,7 @@ addFieldToRequest :: Request
                   -> String
                   -> Request
 addFieldToRequest existingRequest fieldName fieldValue
- = case trace ("Adding field " ++ fieldName) fieldName of
+ = case fieldName of
    "Accept:" -> changeRAccept existingRequest fieldValue
    "Accept-Charset:" -> changeRAcceptCharset existingRequest fieldValue
    "Accept-Encoding:" -> changeRAcceptEncoding existingRequest fieldValue
@@ -357,3 +376,11 @@ addFieldToRequest existingRequest fieldName fieldValue
    "X-UIDH:" -> changeRXUIDH existingRequest fieldValue
    "X-Csrf-Token:" -> changeRXCsrfToken existingRequest fieldValue
    _ -> trace ("Could not identify request field " ++ fieldName) existingRequest
+
+data Response = Response
+  { sHTTPVersion :: THTTPVersion
+  , sHTTPStatus :: THTTPStatus
+  }
+
+handleRequest :: Request -> Response
+handleRequest request = undefined

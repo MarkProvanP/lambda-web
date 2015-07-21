@@ -13,7 +13,7 @@ main = withSocketsDo $ do
 
 loop sock = do
   (handle, hostname, portnumber) <- accept sock
-  hSetBuffering handle NoBuffering
+  hSetBuffering handle LineBuffering
   forkIO $ handleConnection handle
   loop sock
 
@@ -22,20 +22,21 @@ msg = "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nPong!\r\n"
 handleConnection :: Handle -> IO ()
 handleConnection handle = do
   request <- readRequest handle
-  trace (show request) $ hPutStr handle msg
-  hFlush handle
-  hClose handle
+  let response = handleRequest request
+  handleResponse handle response
+
 
 readRequest :: Handle -> IO Request
 readRequest handle = do
-  incompleteRequest <- trace ("Reading first line of request") readFirstLineOfRequest handle
-  readNextLineOfRequest handle incompleteRequest
+  incompleteRequest <- readFirstLineOfRequest handle
+  completeRequest <- readNextLineOfRequest handle incompleteRequest
+  return $ completeRequest
 
   where
     readFirstLineOfRequest :: Handle -> IO Request
     readFirstLineOfRequest handle = do
       firstLine <- hGetLine handle
-      let split = trace ("First line: " ++ firstLine) $ words firstLine
+      let split = words firstLine
       let httpMethod = parseHTTPMethod $ split !! 0
       let httpFilename = split !! 1
       let httpVersion = parseHTTPVersion $ split !! 2
@@ -45,7 +46,7 @@ readRequest handle = do
     readNextLineOfRequest handle existingRequest = do
       headerLine <- hGetLine handle
       case headerLine of
-        "" -> return existingRequest
+        "\r" -> return existingRequest
         s -> let split = splitRequestHeader s
                  requestFieldName = split !! 0
                  requestFieldValue = split !! 1
@@ -57,3 +58,9 @@ readRequest handle = do
       "" -> []
       s' -> w : [s'']
             where (w, s'') = break isSpace s'
+
+handleResponse :: Handle -> Response -> IO ()
+handleResponse handle response = do
+  hPutStr handle msg
+  hFlush handle
+  hClose handle
