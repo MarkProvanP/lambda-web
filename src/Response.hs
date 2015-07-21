@@ -10,8 +10,8 @@ import HTTP
 import Request
 
 data Response = Response
-  { sHTTPVersion :: THTTPVersion
-  , sHTTPStatus :: THTTPStatus
+  { sHTTPVersion :: HTTPVersion
+  , sHTTPStatus :: HTTPStatus
   , sAccessControlAllowOrigin :: TAccessControlAllowOrigin
   , sAcceptPatch :: TAcceptPatch
   , sAcceptRanges :: TAcceptRanges
@@ -26,7 +26,7 @@ data Response = Response
   , sContentLocation :: TContentLocation
   , sContentMD5 :: TContentMD5
   , sContentRange :: TContentRange
-  , sContentType :: TContentType
+  , sContentType :: ContentType
   , sDate :: TDate
   , sETag :: TETag
   , sExpires :: TExpires
@@ -231,7 +231,7 @@ handleRequest request = let requestFilename = rHTTPFilename request
 
 
 
-retrieveFilename :: String -> IO (THTTPStatus, Maybe Handle)
+retrieveFilename :: String -> IO (HTTPStatus, Maybe Handle)
 retrieveFilename filename = do
   maybeHandle <- try (openFile filename ReadMode)
   case maybeHandle of
@@ -248,7 +248,7 @@ retrieveFilename filename = do
 fourOhThreePageFilename = "403.html"
 fourOhFourPageFilename = "404.html"
 
-detectContentType :: String -> TContentType
+detectContentType :: String -> ContentType
 detectContentType filename = case strippedFilenameEnding of
   "html" -> TEXT_HTML
   "css" -> TEXT_CSS

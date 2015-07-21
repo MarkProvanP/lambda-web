@@ -3,9 +3,9 @@ module Request where
 import HTTP
 
 data Request = Request
-    { rHTTPMethod :: THTTPMethod
-    , rHTTPFilename :: THTTPFilename
-    , rHTTPVersion :: THTTPVersion
+    { rHTTPMethod :: HTTPMethod -- ^ The HTTP method of the request
+    , rHTTPFilename :: THTTPFilename -- ^ The filename requested
+    , rHTTPVersion :: HTTPVersion -- ^ The HTTP version of the request
     , rAccept :: TAccept
     , rAcceptCharset :: TAcceptCharset
     , rAcceptEncoding :: TAcceptEncoding
@@ -17,7 +17,7 @@ data Request = Request
     , rCookie :: TCookie
     , rContentLength :: TContentLength
     , rContentMD5 :: TContentMD5
-    , rContentType :: TContentType
+    , rContentType :: ContentType
     , rDate :: TDate
     , rExpect :: TExpect
     , rFrom :: TFrom
@@ -52,10 +52,10 @@ data Request = Request
     , rXCsrfToken :: TXCsrfToken
     } deriving (Show)
 
-createFirstLineRequest :: THTTPMethod
-                       -> THTTPFilename
-                       -> THTTPVersion
-                       -> Request
+createFirstLineRequest :: HTTPMethod -- ^ The HTTP method of the request
+                       -> THTTPFilename -- ^ The filename requested
+                       -> HTTPVersion -- ^ The HTTP version of the request
+                       -> Request -- ^ The constructed 'Request' object
 createFirstLineRequest method filename version
   = Request method filename version
      initialAccept
