@@ -4,6 +4,8 @@ import System.IO
 import Data.Char
 import Debug.Trace
 
+import qualified Data.ByteString.Lazy as B
+
 import HTTP
 import Request
 import Response
@@ -24,9 +26,10 @@ msg = "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nPong!\r\n"
 handleConnection :: Handle -> IO ()
 handleConnection handle = do
   request <- readRequest handle
-  let response = handleRequest request
+  response <- handleRequest request
   handleResponse handle response
 
+defaultFilename = "index.html"
 
 readRequest :: Handle -> IO Request
 readRequest handle = do
@@ -40,7 +43,10 @@ readRequest handle = do
       firstLine <- hGetLine handle
       let split = words firstLine
       let httpMethod = parseHTTPMethod $ split !! 0
-      let httpFilename = split !! 1
+      let removedFrontSlash = tail $ split !! 1
+      let httpFilename = case removedFrontSlash of
+                            "" -> defaultFilename
+                            s -> s
       let httpVersion = parseHTTPVersion $ split !! 2
       return $ createFirstLineRequest httpMethod httpFilename httpVersion
 
@@ -63,6 +69,11 @@ readRequest handle = do
 
 handleResponse :: Handle -> Response -> IO ()
 handleResponse handle response = do
-  hPutStr handle msg
+  hPutStr handle (show (sHTTPVersion response) ++ " " ++ show (sHTTPStatus response) ++ httpLineSeparator)
+  hPutStr handle ("Content-Length: " ++ show (sContentLength response) ++ httpLineSeparator)
+  hPutStr handle httpLineSeparator
+  case (sFileHandle response) of
+    Just fileHandle -> B.hGetContents fileHandle >>= B.hPut handle
+    _ -> hPutStr handle "<!DOCTYPE html><html><head><title>Oops!</title></head><body><h1>Oh dear!</h1></body></html>"
   hFlush handle
   hClose handle

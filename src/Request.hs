@@ -118,9 +118,9 @@ addFieldToRequest existingRequest fieldName fieldValue
      "Cache-Control:" -> changeRCacheControl existingRequest fieldValue
      "Connection:" -> changeRConnection existingRequest fieldValue
      "Cookie:" -> changeRCookie existingRequest fieldValue
-     "Content-Length:" -> changeRContentLength existingRequest fieldValue
+     "Content-Length:" -> changeRContentLength existingRequest (read fieldValue :: Integer)
      "Content-MD5:" -> changeRContentMD5 existingRequest fieldValue
-     "Content-Type:" -> changeRContentType existingRequest fieldValue
+     "Content-Type:" -> changeRContentType existingRequest (parseContentType fieldValue)
      "Date:" -> changeRDate existingRequest fieldValue
      "Expect:" -> changeRExpect existingRequest fieldValue
      "From:" -> changeRFrom existingRequest fieldValue
@@ -191,16 +191,15 @@ type TCookie = String
 initialCookie = ""
 changeRCookie request value = request { rCookie = value }
 
-type TContentLength = String
-initialContentLength = ""
+type TContentLength = Integer
+initialContentLength = 0
 changeRContentLength request value = request { rContentLength = value }
 
 type TContentMD5 = String
 initialContentMD5 = ""
 changeRContentMD5 request value = request { rContentMD5 = value }
 
-type TContentType = String
-initialContentType = ""
+-- TContentType in HTTP.hs
 changeRContentType request value = request { rContentType = value }
 
 type TDate = String
