@@ -4,7 +4,9 @@ import System.IO
 import Data.Char
 import Debug.Trace
 
-import Server
+import HTTP
+import Request
+import Response
 
 main :: IO ()
 main = withSocketsDo $ do
